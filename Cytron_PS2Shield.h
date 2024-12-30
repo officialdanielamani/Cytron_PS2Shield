@@ -3,8 +3,11 @@ Original written by:
             Cytron Technologies
 
 Modified:
-  29/06/15  Idris, Cytron Technologies    - Point to IDE SoftwareSerial
-                                          - Restructure the code style to follow standard Arduino library
+  29/06/2015  Idris, Cytron Technologies    - Point to IDE SoftwareSerial
+                                            - Restructure the code style to follow standard Arduino library
+Updated:
+  30/12/2024  Daniel Amani, ProjectEDNA     - Add support for multiple hardware serial ports
+                                            - Avoid issues with Arduino Mega R3
 */
 
 #ifndef Cytron_PS2Shield_h
@@ -12,13 +15,6 @@ Modified:
 
 #include "Arduino.h"
 #include <SoftwareSerial.h>
-
-// Arduino Leonardo
-#if defined (__AVR_ATmega32U4__)
-  #define Serial Serial1
-#else 
-  #define Serial Serial
-#endif
 
 // Define PS2 button to number
 enum {
@@ -54,25 +50,24 @@ enum {
   PS2_JOYSTICK_RIGHT_RIGHT,
   // Check connection status
   PS2_CONNECTION_STATUS,
-  // Control motor vibrarion
+  // Control motor vibration
   PS2_MOTOR_1,
   PS2_MOTOR_2,
   // Read all button
   PS2_BUTTON_JOYSTICK
 };
 
-class Cytron_PS2Shield
-{
+class Cytron_PS2Shield {
   public:
-	  boolean SERIAL_ERR;
-	  uint8_t ps_data[6];
+    boolean SERIAL_ERR;
+    uint8_t ps_data[6];
     uint8_t _txpin, _rxpin;
 
-    // Software Serial
-    Cytron_PS2Shield(uint8_t rxpin, uint8_t txpin);
-    // Hardware Serial
-    Cytron_PS2Shield();
-  
+    // Constructors
+    Cytron_PS2Shield(uint8_t rxpin, uint8_t txpin); // SoftwareSerial
+    Cytron_PS2Shield(HardwareSerial& hwSerial);    // HardwareSerial
+
+    // Functions
     void begin(uint32_t baudrate);
     uint8_t readButton(uint8_t key);
     boolean readAllButton();
@@ -81,7 +76,9 @@ class Cytron_PS2Shield
 
   protected:
     boolean hardwareSerial;
-    SoftwareSerial *PS2Serial;
+    HardwareSerial* hwSerial;     // Pointer to HardwareSerial instance
+    SoftwareSerial* PS2Serial;    // Pointer to SoftwareSerial instance
+
     void write(uint8_t data);
     uint8_t read(void);
 };
